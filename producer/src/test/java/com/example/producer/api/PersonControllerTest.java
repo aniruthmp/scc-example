@@ -31,4 +31,11 @@ public class PersonControllerTest {
                 .andDo(MockMvcRestDocumentation.document("message"));
     }
 
+    @Test
+    public void should_get_persons() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get("/persons"))
+                .andExpect(MockMvcResultMatchers.status().is(201))
+                .andDo(MockMvcRestDocumentation.document("persons"));
+    }
+
 }
