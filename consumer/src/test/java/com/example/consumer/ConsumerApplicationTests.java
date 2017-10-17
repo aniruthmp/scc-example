@@ -1,20 +1,19 @@
 package com.example.consumer;
 
-import com.example.consumer.api.PeopleController;
-import com.example.consumer.domain.People;
+import com.example.consumer.api.ConsumerController;
+import com.example.consumer.domain.Consumer;
+import com.example.consumer.model.People;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.assertj.core.api.BDDAssertions;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.contract.stubrunner.junit.StubRunnerRule;
 import org.springframework.cloud.contract.stubrunner.spring.AutoConfigureStubRunner;
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.http.HttpStatus;
@@ -43,46 +42,52 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class ConsumerApplicationTests {
 
     private List<People> personList = new ArrayList<>();
-    private String json;
+    private List<Consumer> consumers = new ArrayList<>();
+    private String peopleJson;
+    private String consumerJson;
     @Value("${stubrunner.runningstubs.producer.port}")
     int producerPort;
 
     @Autowired
-    PeopleController peopleController;
+    ConsumerController consumerController;
 
     @Autowired
     MockMvc mockMvc;
 
     @Before
     public void setup() {
-        peopleController.setPERSON_APP_PORT(producerPort);
+        consumerController.setProducerAppPort(producerPort);
         if (CollectionUtils.isEmpty(this.personList)) {
             personList = Arrays.asList(
                     new People(100, "Aniruth", "Parthasarathy"),
                     new People(101, "Scott", "Tiger"));
+            personList.parallelStream().forEach(people -> {
+                consumers.add(new Consumer(people.getPersonId(), people.getFirstName(), people.getLastName()));
+            });
             Gson gson = new GsonBuilder().create();
-            json = gson.toJson(personList);
+            peopleJson = gson.toJson(personList);
+            consumerJson = gson.toJson(consumers);
         }
     }
 
     @Test
     public void test_should_return_all_people_withMock() {
-        WireMock.stubFor(WireMock.get(WireMock.urlEqualTo("/people"))
-                .willReturn(WireMock.aResponse().withBody(json).withStatus(HttpStatus.ACCEPTED.value())));
+        WireMock.stubFor(WireMock.get(WireMock.urlEqualTo("/consumers"))
+                .willReturn(WireMock.aResponse().withBody(consumerJson).withStatus(HttpStatus.ACCEPTED.value())));
 
         RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<String> persons = restTemplate.getForEntity("http://localhost:8081/people",
+        ResponseEntity<String> consumers = restTemplate.getForEntity("http://localhost:8081/consumers",
                 String.class);
 
-        BDDAssertions.then(persons.getStatusCodeValue()).isEqualTo(HttpStatus.ACCEPTED.value());
-        BDDAssertions.then(persons.getBody()).isEqualTo(json);
+        BDDAssertions.then(consumers.getStatusCodeValue()).isEqualTo(HttpStatus.ACCEPTED.value());
+        BDDAssertions.then(consumers.getBody()).isEqualTo(consumerJson);
     }
 
     @Test
     public void test_should_return_all_people_withStub() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/people").accept(MediaType.APPLICATION_JSON_VALUE))
+        mockMvc.perform(MockMvcRequestBuilders.get("/consumers").accept(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isAccepted())
-                .andExpect(content().string(json));
+                .andExpect(content().string(consumerJson));
     }
 
     @Test

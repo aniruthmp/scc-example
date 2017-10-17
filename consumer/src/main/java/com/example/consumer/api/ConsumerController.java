@@ -1,6 +1,7 @@
 package com.example.consumer.api;
 
-import com.example.consumer.domain.People;
+import com.example.consumer.domain.Consumer;
+import com.example.consumer.model.People;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -21,23 +22,23 @@ import java.util.Objects;
 
 @RestController
 @Slf4j
-public class PeopleController {
+public class ConsumerController {
     private final RestTemplate restTemplate;
-    int PERSON_APP_PORT = 8082;
+    int producerAppPort = 8082;
 
-    public PeopleController(RestTemplate restTemplate) {
+    public ConsumerController(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 
-    public void setPERSON_APP_PORT(int PERSON_APP_PORT) {
-        this.PERSON_APP_PORT = PERSON_APP_PORT;
+    public void setProducerAppPort(int producerAppPort) {
+        this.producerAppPort = producerAppPort;
     }
 
-    @GetMapping(value = "/people", produces = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<List<People>> people() {
-        log.info("Came inside /people GET API");
+    @GetMapping(value = "/consumers", produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<List<Consumer>> people() {
+        log.info("Came inside /consumers GET API");
         ResponseEntity<String> response = this.restTemplate.getForEntity(
-                URI.create("http://localhost:" + PERSON_APP_PORT + "/persons"),
+                URI.create("http://localhost:" + producerAppPort + "/persons"),
                 String.class);
         log.info("Response: {}", response);
         String responseBody = response.getBody();
@@ -45,11 +46,12 @@ public class PeopleController {
             Gson gson = new GsonBuilder().create();
             Type token = new TypeToken<Collection<People>>() {}.getType();
             List<People> personList = gson.fromJson(responseBody, token);
+            List<Consumer> consumers = new ArrayList<>();
             personList.parallelStream().forEach(people -> {
-                people.setFullName();
+                consumers.add(new Consumer(people.getPersonId(), people.getFirstName(), people.getLastName()));
             });
-            log.info("Returning {} with Payload {}", HttpStatus.ACCEPTED, personList);
-            return ResponseEntity.status(HttpStatus.ACCEPTED).body(personList);
+            log.info("Returning {} with Payload {}", HttpStatus.ACCEPTED, consumers);
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body(consumers);
         } else {
             log.warn("Returning {} with Empty Payload", HttpStatus.ACCEPTED);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ArrayList<>());

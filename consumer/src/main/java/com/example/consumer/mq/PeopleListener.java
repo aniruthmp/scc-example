@@ -1,8 +1,7 @@
 package com.example.consumer.mq;
 
-import com.example.consumer.domain.People;
+import com.example.consumer.model.People;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.cloud.stream.messaging.Sink;
 import org.springframework.stereotype.Component;
@@ -16,6 +15,6 @@ public class PeopleListener {
     @StreamListener(Sink.INPUT)
     public void onMessage(People people) {
         log.info("Received Message: {}", people.toString());
-        this.fullName = people.getFullName();
+        this.fullName = people.getFirstName() + " " + people.getLastName();
     }
 }
