@@ -8,6 +8,9 @@ Contract.make {
     }
     outputMessage {
         sentTo "persons"
-        body([firstName: "From", lastName: "Producer"])
+        body(["personId": 999, "firstName": "From", "lastName": "Producer"])
+        headers {
+            header("contentType", applicationJsonUtf8())
+        }
     }
 }

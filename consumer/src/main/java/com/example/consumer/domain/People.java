@@ -1,17 +1,23 @@
 package com.example.consumer.domain;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class People {
+    private int personId;
     private String firstName;
     private String lastName;
+    private String fullName;
 
-    public String getFullName(){
-        return firstName + " " + lastName;
+
+    public People(int personId, String firstName, String lastName) {
+        this.personId = personId;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        setFullName();
+    }
+
+    public void setFullName(){
+        this.fullName = firstName + " " + lastName;
     }
 }

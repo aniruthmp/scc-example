@@ -4,12 +4,15 @@ import com.example.producer.domain.Person;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.cloud.stream.messaging.Source;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -17,10 +20,20 @@ import java.util.List;
 @EnableBinding(Source.class)
 public class PersonController {
 
-    @GetMapping("/persons")
+    private List<Person> personList = new ArrayList<>();
+
+    @Autowired
+    public PersonController() {
+        if (CollectionUtils.isEmpty(this.personList)) {
+            personList = Arrays.asList(
+                    new Person(100, "Aniruth", "Parthasarathy"),
+                    new Person(101, "Scott", "Tiger"));
+        }
+    }
+
+    @GetMapping(value = "/persons", produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<List<Person>> persons() {
-        return ResponseEntity.status(201).body(Arrays.asList(new Person("Aniruth", "Parthasarathy"),
-                new Person("Scott", "Tiger")));
+        return ResponseEntity.status(201).body(personList);
     }
 
     @Autowired
@@ -29,7 +42,7 @@ public class PersonController {
     @PostMapping("/message")
     void message() {
         source.output().send(MessageBuilder.withPayload(
-                new Person("From", "Producer")
+                new Person(999, "From", "Producer")
         ).build());
     }
 }
