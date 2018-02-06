@@ -123,3 +123,4 @@ consumer/src/main/resources/static/
 consumer/src/main/resources/templates/
 producer/src/main/resources/static/
 producer/src/main/resources/templates/
+.DS_Store
