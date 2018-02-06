@@ -4,8 +4,6 @@ import com.example.consumer.api.ConsumerController;
 import com.example.consumer.domain.Consumer;
 import com.example.consumer.model.People;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.assertj.core.api.BDDAssertions;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,11 +21,9 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -43,7 +39,6 @@ public class ConsumerApplicationTests {
 
     private List<People> personList = new ArrayList<>();
     private List<Consumer> consumers = new ArrayList<>();
-    private String peopleJson;
     private String consumerJson;
     @Value("${stubrunner.runningstubs.producer.port}")
     int producerPort;
@@ -57,17 +52,7 @@ public class ConsumerApplicationTests {
     @Before
     public void setup() {
         consumerController.setProducerAppPort(producerPort);
-        if (CollectionUtils.isEmpty(this.personList)) {
-            personList = Arrays.asList(
-                    new People(100, "Aniruth", "Parthasarathy"),
-                    new People(101, "Scott", "Tiger"));
-            personList.parallelStream().forEach(people -> {
-                consumers.add(new Consumer(people.getPersonId(), people.getFirstName(), people.getLastName()));
-            });
-            Gson gson = new GsonBuilder().create();
-            peopleJson = gson.toJson(personList);
-            consumerJson = gson.toJson(consumers);
-        }
+        consumerJson = "[{\"memberId\":101,\"fullName\":\"Scott Tiger\"},{\"memberId\":100,\"fullName\":\"Aniruth Parthasarathy\"}]";
     }
 
     @Test
